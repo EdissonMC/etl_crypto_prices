@@ -22,3 +22,44 @@ def json_to_dataframe(data):
 
     df = pd.DataFrame(rows)
     return df
+
+
+
+def remove_outliers_iqr(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    """
+    Elimina outliers de una columna numérica en un DataFrame usando el método IQR.
+    Retorna un nuevo DataFrame sin los outliers.
+    """
+    Q1 = df[column].quantile(0.25)
+    Q3 = df[column].quantile(0.75)
+    IQR = Q3 - Q1
+
+    lower_limit = Q1 - 1.5 * IQR
+    upper_limit = Q3 + 1.5 * IQR
+
+    df_cleaned = df[(df[column] >= lower_limit) & (df[column] <= upper_limit)]
+    return df_cleaned
+
+
+def remove_outliers_iqr_multiple(df: pd.DataFrame, columns: list) -> pd.DataFrame:
+    """
+    Aplica IQR para eliminar outliers de múltiples columnas.
+    """
+    for col in columns:
+        df = remove_outliers_iqr(df, col)
+    return df
+
+
+def detect_outliers_iqr(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    """
+    Añade una columna booleana que indica si un valor en la columna dada es un outlier.
+    """
+    Q1 = df[column].quantile(0.25)
+    Q3 = df[column].quantile(0.75)
+    IQR = Q3 - Q1
+
+    lower_limit = Q1 - 1.5 * IQR
+    upper_limit = Q3 + 1.5 * IQR
+
+    df[f"{column}_outlier"] = ~df[column].between(lower_limit, upper_limit)
+    return df
